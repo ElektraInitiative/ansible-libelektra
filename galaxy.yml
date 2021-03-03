@@ -10,6 +10,7 @@ authors:
 
 description: Collection containing a module to interact with Elektra.
 license: TODO
+license_file: LICENSE
 tags: 
   - elektra
   - libelektra
