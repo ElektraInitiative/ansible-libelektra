@@ -157,12 +157,15 @@ def elektraSet(mountpoint, keyset, keeporder):
             if isinstance(value, dict):
                 for sname, svalue in value.items():
                     if sname == 'value':
-                        key.value = svalue
+                        if key.value != str(svalue):
+                            key.value = str(svalue)
                     elif sname == 'meta':
                         for mname, mvalue in svalue.items():
-                            key.setMeta(mname, str(mvalue))
+                            if key.getMeta(mname) != str(mvalue):
+                                key.setMeta(mname, str(mvalue))
             else:
-                key.value = value
+                if key.value != str(value):
+                    key.value = str(value)
         try:
             rc = db.set(ks, mountpoint)
         except kdb.KDBException as e:
