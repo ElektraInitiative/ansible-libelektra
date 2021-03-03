@@ -8,7 +8,7 @@ import kdb
 def main():
     module = AnsibleModule(
             argument_spec=dict(
-                mountpoint=dict(default='system'),
+                mountpoint=dict(default='system:/'),
                 )
             )
     mountpoint = module.params.get('mountpoint')
@@ -19,7 +19,7 @@ def main():
         if rc != 1:
             module.fail_json(msg="No configuration mounted under %s" % mountpoint)
         for k in ks:
-            kname=str(k)[len(mountpoint)+1:]
+            kname=str(k)[len(mountpoint):].rstrip("/")
             miter=k.getMeta()
             if miter != None:
                 json_output[kname] = {}
