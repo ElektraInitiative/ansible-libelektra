@@ -9,7 +9,7 @@ authors:
 - Klemens Böswirth <k.boeswirth+git@gmail.com>
 
 description: Collection containing a module to interact with Elektra.
-license: TODO
+license: BSD-3-Clause
 license_file: LICENSE
 tags: 
   - elektra
