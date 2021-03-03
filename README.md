@@ -4,6 +4,17 @@ This is an Ansible module for [Elektra](https://github.com/ElektraInitiative/lib
 
 ## Installation
 
+You need Ansible 2.7 or newer for this module.
+Older Versions may work, but to install the module you would have to add the module directly into the Ansible source.
+
+### Ansible 2.9+
+
+If you have Ansible 2.9 or newer, you can [install directly from Ansible Galaxy](https://galaxy.ansible.com/ElektraInitiative/libelektra).
+
+### Ansible 2.7+
+
+If you cannot use Ansible 2.9, but you have Ansible 2.7 or newer, you may install the module manually.
+
 To get started, clone this repo and copy the directory `elektra` to `~/.ansible/plugins/modules/elektra`.
 (You should then have e.g. `~/.ansible/plugins/modules/elektra/elektra.py` on your system.)
 
