@@ -50,10 +50,10 @@ author:
 '''
 
 EXAMPLES = '''
-# mount /etc/hosts with recommends to system/hosts and set localhost to 127.0.0.1
+# mount /etc/hosts with recommends to system:/hosts and set localhost to 127.0.0.1
 - name: update localhost ip
   elektra:
-    mountpoint: system/hosts
+    mountpoint: system:/hosts
     filename: /etc/hosts
     recommends: True
     plugins:
@@ -62,11 +62,11 @@ EXAMPLES = '''
         ipv4:
             localhost: 127.0.0.1
 
-# mount /tmp/test.ini to system/testini using the ini plugin and ':' as separator instead of '='
+# mount /tmp/test.ini to system:/testini using the ini plugin and ':' as separator instead of '='
 # and replace "key: value" with "key: newvalue"
 - name: mount ini
   elektra:
-      mountpoint: system/testini
+      mountpoint: system:/testini
       filename: /tmp/test.ini
       plugins:
         - ini:
@@ -181,14 +181,14 @@ def execute(command):
 def elektraMount(mountpoint, filename, resolver, plugins, recommends):
     with kdb.KDB() as db:
         ks = kdb.KeySet(0)
-        mountpoints = "system/elektra/mountpoints"
+        mountpoints = "system:/elektra/mountpoints"
         rc = 0
         try:
             rc = db.get(ks, mountpoints)
         except kdb.KDBException as e:
             raise ElektraReadException("KDB.get failed: {}".format(e))
         if rc == -1:
-            raise ElektraMountException("Failed to fetch elektra facts: failed to read system/elektra/mountpoints.")
+            raise ElektraMountException("Failed to fetch elektra facts: failed to read system:/elektra/mountpoints.")
         searchKey = mountpoints +'/'+ mountpoint.replace('/', '\/')
         try:
             key = ks[searchKey]
@@ -214,14 +214,14 @@ def elektraMount(mountpoint, filename, resolver, plugins, recommends):
 def elektraUmount(mountpoint):
     with kdb.KDB() as db:
         ks = kdb.KeySet(0)
-        mountpoints = "system/elektra/mountpoints"
+        mountpoints = "system:/elektra/mountpoints"
         rc = 0
         try:
             rc = db.get(ks, mountpoints)
         except kdb.KDBException as e:
             raise ElektraReadException("KDB.get failed: {}".format(e))
         if rc != 1:
-            raise ElektraUmountException("Failed to fetch elektra facts: failed to read system/elektra/mountpoints.")
+            raise ElektraUmountException("Failed to fetch elektra facts: failed to read system:/elektra/mountpoints.")
         key = kdb.Key()
         key.name = mountpoints+'/'+mountpoint.replace('/', '\/')
         ks.cut(key)
