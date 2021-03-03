@@ -254,6 +254,10 @@ def main():
     json_output={}                                                  
     json_output['changed'] = False
 
+    if mountpoint[0] == '/':
+        module.fail_json(msg="Cascading mountpoints currently not supported")
+        return
+
     mountpointExists = True     # Indicates if mountpoint already exists prior to calling the module. If not/"False" unmount it on failure
     rc = 0
     if plugins or filename != '':
