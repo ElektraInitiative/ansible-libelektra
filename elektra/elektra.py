@@ -238,7 +238,7 @@ def elektraUmount(mountpoint):
 def main():
     module = AnsibleModule(
             argument_spec=dict(
-                mountpoint=dict(type='str'),
+                mountpoint=dict(type='str', required=True),
                 keys=dict(type='raw', default={}),
                 recommends=dict(type='bool', default=True),         # mount with --with-recommends
                 filename=dict(type='str', default=''),
