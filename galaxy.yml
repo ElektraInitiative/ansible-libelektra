@@ -1,0 +1,24 @@
+namespace: ElektraInitiative
+name: libelektra
+version: 0.1.0
+readme: README.md
+
+# Ex: 'Full Name <email> (http://site) @nicks:irc/im/site#channel'
+authors:
+- Thomas Waser <thomas.waser@tuwien.ac.at>
+- Klemens Böswirth <k.boeswirth+git@gmail.com>
+
+description: Collection containing a module to interact with Elektra.
+license: TODO
+tags: 
+  - elektra
+  - libelektra
+  - configuration
+  - kdb
+
+dependencies: {}
+
+repository: https://github.com/ElektraInitiative/ansible-libelektra
+documentation: https://github.com/ElektraInitiative/ansible-libelektra
+homepage: https://www.libelektra.org
+issues: https://issues.libelektra.org
