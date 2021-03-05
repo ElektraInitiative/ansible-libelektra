@@ -2,6 +2,11 @@
 
 This is an Ansible module for [Elektra](https://github.com/ElektraInitiative/libelektra).
 
+## Getting Ansible
+
+We recommend you follow the instructions in the [official Ansible documentation](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) instead of just installing from your distro's default repository.
+Some distros may ship older versions of Ansible, which make it harder to install this module (see below).
+
 ## Installation
 
 You need Ansible 2.7 or newer for this module.
