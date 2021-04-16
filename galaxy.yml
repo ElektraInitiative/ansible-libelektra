@@ -1,4 +1,4 @@
-namespace: ElektraInitiative
+namespace: elektra_initiative
 name: libelektra
 version: 0.1.0
 readme: README.md
@@ -10,7 +10,6 @@ authors:
 
 description: Collection containing a module to interact with Elektra.
 license: BSD-3-Clause
-license_file: LICENSE
 tags: 
   - elektra
   - libelektra
