@@ -41,6 +41,11 @@ ansible localhost -m elektra
 
 ## Example Playbooks
 
+To use the playbooks below, put them into a file e.g. `my-playbook.yml` and run them with `ansible-playbook`:
+```sh
+ansible-playbook my-playbook.yml
+```
+
 The module lets you set values in the KDB.
 This process is idempotent, i.e. only if the stored values differ from the ones in the playbook, will the KDB be modified.
 The change detection happens on a per-task basis.
