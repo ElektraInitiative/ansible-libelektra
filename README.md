@@ -14,7 +14,11 @@ Older Versions may work, but to install the module you would have to add the mod
 
 ### Ansible 2.9+
 
-If you have Ansible 2.9 or newer, you can [install directly from Ansible Galaxy](https://galaxy.ansible.com/ElektraInitiative/libelektra).
+If you have Ansible 2.9 or newer, you can [install directly from Ansible Galaxy](https://galaxy.ansible.com/elektra_initiative/libelektra).
+
+```sh
+ansible-galaxy collection install elektra_initiative.libelektra
+```
 
 ### Ansible 2.7+
 
