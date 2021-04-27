@@ -20,12 +20,23 @@ If you have Ansible 2.9 or newer, you can [install directly from Ansible Galaxy]
 ansible-galaxy collection install elektra_initiative.libelektra
 ```
 
+The following command should now be recognized, but fail because of a missing `mountpoint`:
+
+```sh
+ansible localhost -m elektra_initiative.libelektra.elektra
+```
+
 ### Ansible 2.7+
 
 If you cannot use Ansible 2.9, but you have Ansible 2.7 or newer, you may install the module manually.
 
-To get started, clone this repo and copy the directory `elektra` to `~/.ansible/plugins/modules/elektra`.
+To get started, clone this repo and copy the directory `plugins/modules` to `~/.ansible/plugins/modules/elektra`.
 (You should then have e.g. `~/.ansible/plugins/modules/elektra/elektra.py` on your system.)
+
+```sh
+mkdir -p ~/.ansible/plugins/modules/elektra
+cp ./plugins/modules/* ~/.ansible/plugins/modules/elektra/
+```
 
 You may also follow a different [method of installing Ansible modules](https://docs.ansible.com/ansible/latest/dev_guide/developing_locally.html).
 
@@ -55,6 +66,15 @@ This process is idempotent, i.e. only if the stored values differ from the ones 
 The change detection happens on a per-task basis.
 If a single key with in a task needs an update, the all the keys in this task will be updated.
 
+> **NOTE**: If you installed via `ansible-galaxy`, you have to replace `elektra:` with `elektra_initiative.libelektra.elektra:` in the examples below.
+> Alternatively, you can also add
+> ```yml
+> collections:
+>   - elektra_initiative.libelektra
+> ```
+> before the `tasks:` line.
+> For more information take a look at the [Ansible docs](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html#using-collections-in-playbooks).
+
 ```yml
 - name: elektra module example
   hosts: localhost
@@ -64,7 +84,7 @@ If a single key with in a task needs an update, the all the keys in this task wi
       elektra:
         # Despite the name, this does not have to be a real mountpoint in the KDB.
         # If no plugin is specified, the value is only used as the base key for the keys object.
-        mountpoint: /test/example
+        mountpoint: user:/test/example
         # The keys object contains the data that should be present below the mountpoint.
         keys:
           fruit:
@@ -95,7 +115,7 @@ In most cases, you should use a specification for metadata instead.
   tasks:
     - name: set example fruits
       elektra:
-        mountpoint: /test/example/fruit
+        mountpoint: user:/test/example/fruit
         keys:
           cherry:
             value: cola
@@ -111,7 +131,7 @@ In most cases, you should use a specification for metadata instead.
                 value: muffin
     - name: set example vegtables
       elektra:
-        mountpoint: /test/example/vegtables
+        mountpoint: user:/test/example/vegtables
         keys:
           tomato:
               value: ketchup
