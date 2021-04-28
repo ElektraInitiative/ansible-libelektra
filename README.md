@@ -2,15 +2,17 @@
 
 This is an Ansible module for [Elektra](https://github.com/ElektraInitiative/libelektra).
 
-## Getting Ansible
-
-We recommend you follow the instructions in the [official Ansible documentation](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) instead of just installing from your distro's default repository.
-Some distros may ship older versions of Ansible, which make it harder to install this module (see below).
-
-## Installation
+## Installing Ansible
 
 You need Ansible 2.7 or newer for this module.
-Older Versions may work, but to install the module you would have to add the module directly into the Ansible source.
+Some distros may ship Ansible using Python 2, which does not work with this module as it requires Python 3.
+As recommended [here](https://docs.ansible.com/ansible/latest/reference_appendices/python_3_support.html) one way to get started is:
+
+```sh
+pip3 install ansible
+```
+
+## Installing the Module
 
 ### Ansible 2.9+
 
@@ -24,6 +26,12 @@ The following command should now be recognized, but fail because of a missing `m
 
 ```sh
 ansible localhost -m elektra_initiative.libelektra.elektra
+```
+
+To output the contents of the `system:/` namespace, you can use:
+
+```sh
+ansible localhost -m elektra_initiative.libelektra.elektrafacts
 ```
 
 ### Ansible 2.7+
@@ -57,28 +65,22 @@ ansible localhost -m elektra
 ## Example Playbooks
 
 To use the playbooks below, put them into a file e.g. `my-playbook.yml` and run them with `ansible-playbook`:
+
 ```sh
 ansible-playbook my-playbook.yml
 ```
 
 The module lets you set values in the KDB.
-This process is idempotent, i.e. only if the stored values differ from the ones in the playbook, will the KDB be modified.
+This process is idempotent, i.e. only if the stored values differ from the ones in the playbook, the KDB will be modified.
 The change detection happens on a per-task basis.
-If a single key with in a task needs an update, the all the keys in this task will be updated.
-
-> **NOTE**: If you installed via `ansible-galaxy`, you have to replace `elektra:` with `elektra_initiative.libelektra.elektra:` in the examples below.
-> Alternatively, you can also add
-> ```yml
-> collections:
->   - elektra_initiative.libelektra
-> ```
-> before the `tasks:` line.
-> For more information take a look at the [Ansible docs](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html#using-collections-in-playbooks).
+If a single key with in a task needs an update, then all the keys in this task will be updated.
 
 ```yml
 - name: elektra module example
   hosts: localhost
   connection: local
+  collections:
+    - elektra_initiative.libelektra
   tasks:
     - name: set example values
       elektra:
@@ -101,41 +103,6 @@ If a single key with in a task needs an update, the all the keys in this task wi
             tomato:
               value: ketchup
             potato:
-              value: fries
-
-```
-
-You can also specify metadata (if the underlying storage format supports it).
-In most cases, you should use a specification for metadata instead.
-
-```yml
-- name: elektra module example
-  hosts: localhost
-  connection: local
-  tasks:
-    - name: set example fruits
-      elektra:
-        mountpoint: user:/test/example/fruit
-        keys:
-          cherry:
-            value: cola
-            meta:
-              # This adds the type metakey with value string to the key /test/example/fruit/cherry
-              type: string
-          apple:
-            value: pie
-          berries:
-              raspberry:
-                value: pi
-              blueberry:
-                value: muffin
-    - name: set example vegtables
-      elektra:
-        mountpoint: user:/test/example/vegtables
-        keys:
-          tomato:
-              value: ketchup
-          potato:
               value: fries
 
 ```
