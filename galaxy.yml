@@ -1,6 +1,6 @@
 namespace: elektra_initiative
 name: libelektra
-version: 0.2.0
+version: 0.2.1
 readme: README.md
 
 # Ex: 'Full Name <email> (http://site) @nicks:irc/im/site#channel'
