@@ -106,3 +106,39 @@ If a single key with in a task needs an update, then all the keys in this task w
               value: fries
 
 ```
+
+You can also specify metadata (if the underlying storage format supports it).
+In most cases, you should use a specification for metadata instead.
+
+```yml
+- name: elektra module example
+  hosts: localhost
+  connection: local
+  collections:
+    - elektra_initiative.libelektra
+  tasks:
+    - name: set example fruits
+      elektra:
+        mountpoint: user:/test/example/fruit
+        keys:
+          cherry:
+            value: cola
+            meta:
+              # This adds the type metakey with value string to the key /test/example/fruit/cherry
+              type: string
+          apple:
+            value: pie
+          berries:
+              raspberry:
+                value: pi
+              blueberry:
+                value: muffin
+    - name: set example vegetables
+      elektra:
+        mountpoint: user:/test/example/vegetables
+        keys:
+          tomato:
+              value: ketchup
+          potato:
+              value: fries
+```
