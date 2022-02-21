@@ -161,7 +161,7 @@ def elektraSet(mountpoint, keyset, keeporder):
                             key.value = str(svalue)
                     elif sname == 'meta':
                         for mname, mvalue in svalue.items():
-                            if key.getMeta(mname) != str(mvalue):
+                            if not key.getMeta(mname) or key.getMeta(mname).value != str(mvalue):
                                 key.setMeta(mname, str(mvalue))
             else:
                 if key.value != str(value):
