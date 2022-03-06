@@ -86,7 +86,7 @@ If a single key with in a task needs an update, then all the keys in this task w
       elektra:
         # Despite the name, this does not have to be a real mountpoint in the KDB.
         # If no plugin is specified, the value is only used as the base key for the keys object.
-        mountpoint: user:/test/example
+        mountpoint: user:/tests/ansible
         # The keys object contains the data that should be present below the mountpoint.
         keys:
           fruit:
@@ -119,12 +119,12 @@ In most cases, you should use a specification for metadata instead.
   tasks:
     - name: set example fruits
       elektra:
-        mountpoint: user:/test/example/fruit
+        mountpoint: user:/tests/ansible/fruit
         keys:
           cherry:
             value: cola
             meta:
-              # This adds the type metakey with value string to the key /test/example/fruit/cherry
+              # This adds the type metakey with value string to the key /tests/ansible/fruit/cherry
               type: string
           apple:
             value: pie
@@ -135,7 +135,7 @@ In most cases, you should use a specification for metadata instead.
                 value: muffin
     - name: set example vegetables
       elektra:
-        mountpoint: user:/test/example/vegetables
+        mountpoint: user:/tests/ansible/vegetables
         keys:
           tomato:
               value: ketchup
