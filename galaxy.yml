@@ -1,6 +1,6 @@
 namespace: elektra_initiative
 name: libelektra
-version: 0.2.1
+version: 0.2.2
 readme: README.md
 
 # Ex: 'Full Name <email> (http://site) @nicks:irc/im/site#channel'
@@ -9,7 +9,8 @@ authors:
 - Klemens Böswirth <k.boeswirth+git@gmail.com>
 
 description: Collection containing a module to interact with Elektra.
-license: BSD-3-Clause
+license:
+  - BSD-3-Clause
 tags: 
   - elektra
   - libelektra
