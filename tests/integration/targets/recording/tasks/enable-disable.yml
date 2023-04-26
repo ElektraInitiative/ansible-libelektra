@@ -1,0 +1,129 @@
+- name: Reset Elektra
+  elektra:
+    clear:
+      - /
+    record:
+      enable: false
+      clear: true
+      recordAnsible: false
+  register: result
+
+- name: Get Elektra Info
+  elektrafacts:
+    mountpoint: /
+  register: result
+
+- name: Assert record NOT enabled now
+  assert:
+    that:
+      - result["system:/elektra/version"] is defined
+      - result["system:/elektra/record/config/active"] is undefined
+
+- name: Enable Recording
+  elektra:
+    record:
+      enable: true
+      parentKey: user:/test/recording
+      clear: true
+      recordAnsible: false
+  register: result
+
+- name: Assert enabling changed state
+  assert:
+    that:
+      - result is success
+      - result is changed
+
+- name: Get Elektra Info
+  elektrafacts:
+    mountpoint: /
+  register: result
+
+- name: Assert record IS enabled now
+  assert:
+    that:
+      - result["system:/elektra/version"] is defined
+      - result["system:/elektra/record/config/active"] is defined
+      - result["system:/elektra/record/config/active"].value == "user:/test/recording"
+
+- name: Enable Recording again
+  elektra:
+    record:
+      enable: true
+      parentKey: user:/test/recording
+      clear: true
+      recordAnsible: false
+  register: result
+
+- name: Assert that enabling it again did not change state
+  assert:
+    that:
+      - result is success
+      - result is not changed
+
+- name: Enable Recording with a different parent
+  elektra:
+    record:
+      enable: true
+      parentKey: user:/test/recording_different
+      clear: true
+      recordAnsible: false
+  register: result
+
+- name: Assert that enabling it with a different parent changed the state
+  assert:
+    that:
+      - result is success
+      - result is changed
+
+- name: Get Elektra Info
+  elektrafacts:
+    mountpoint: /
+  register: result
+
+- name: Assert record is enabled with a different parent
+  assert:
+    that:
+      - result["system:/elektra/version"] is defined
+      - result["system:/elektra/record/config/active"] is defined
+      - result["system:/elektra/record/config/active"].value == "user:/test/recording_different"
+
+
+- name: Disable Recording
+  elektra:
+    record:
+      enable: false
+      clear: true
+      recordAnsible: false
+  register: result
+
+- name: Assert disabling recording changed state
+  assert:
+    that:
+      - result is success
+      - result is changed
+
+- name: Disable Recording again
+  elektra:
+    record:
+      enable: false
+      clear: true
+      recordAnsible: false
+  register: result
+
+- name: Assert disabling recording again did not changed state
+  assert:
+    that:
+      - result is success
+      - result is not changed
+
+- name: Get Elektra Info
+  elektrafacts:
+    mountpoint: /
+  register: result
+
+- name: Assert record IS disabled now
+  assert:
+    that:
+      - result["system:/elektra/version"] is defined
+      - result["system:/elektra/record/config/active"] is not defined

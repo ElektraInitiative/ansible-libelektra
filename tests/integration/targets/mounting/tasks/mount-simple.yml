@@ -1,0 +1,46 @@
+- name: Reset Elektra
+  elektra:
+    clear:
+      - /
+    record:
+      enable: false
+      clear: true
+      recordAnsible: false
+  register: result
+
+- name: Assert clearing successful
+  assert:
+    that:
+      - result is success
+
+- name: Create temporary file
+  ansible.builtin.tempfile:
+    state: file
+    suffix: temp
+  register: tempfile_1
+
+- name: Mount file without plugin options
+  elektra:
+    mount:
+      - mountpoint: system:/ansible/test/hosts
+        file: "{{ tempfile_1.path }}"
+        plugins:
+          - hosts:
+  register: result
+
+- name: Assert mounting task successful
+  assert:
+    that:
+      - result is success
+      - result is changed
+
+- name: Get mountpoint infos
+  elektrafacts:
+    mountpoint: system:/elektra/mountpoints
+  register: result
+
+- name: Assert mountpoint exists
+  assert:
+    that:
+      - result is success
+      - result["system:/elektra/mountpoints/system:\/ansible\/test\/hosts"] is defined

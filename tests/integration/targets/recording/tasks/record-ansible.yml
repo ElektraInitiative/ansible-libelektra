@@ -1,0 +1,59 @@
+- name: Reset Elektra
+  elektra:
+    clear:
+      - /
+    record:
+      enable: false
+      clear: true
+      recordAnsible: false
+  register: result
+
+- name: Get Elektra Info
+  elektrafacts:
+    mountpoint: /
+  register: result
+
+- name: Assert record NOT enabled now
+  assert:
+    that:
+      - result["system:/elektra/version"] is defined
+      - result["system:/elektra/record/config/active"] is undefined
+      - result["user:/elektra/record/session/diff/added/test/ansible/record/hello"] is undefined
+
+- name: Create temporary file
+  ansible.builtin.tempfile:
+    state: file
+    suffix: temp
+  register: tempfile_1
+
+- name: Enabling record during ansible should work
+  elektra:
+    mount:
+      - mountpoint: user:/test/ansible/record
+        file: "{{ tempfile_1.path }}"
+    record:
+      enable: false
+      recordAnsible: true
+      clear: true
+    keys:
+      - user:/test/ansible/record/hello: "world"
+  register: result
+
+- name: Assert that result is successful and changed
+  assert:
+    that:
+      - result is success
+      - result is changed
+
+- name: Get Elektra Info
+  elektrafacts:
+    mountpoint: /
+  register: result
+
+- name: Assert record NOT enabled now, but there is something in session storage
+  assert:
+    that:
+      - result["system:/elektra/version"] is defined
+      - result["system:/elektra/record/config/active"] is undefined
+      - result["user:/elektra/record/session/diff/added/test/ansible/record/hello"] is defined
+      - result["user:/elektra/record/session/diff/added/test/ansible/record/hello"].value == "world"
