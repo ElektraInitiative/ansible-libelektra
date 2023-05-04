@@ -4,7 +4,7 @@
       - /
     record:
       enable: false
-      clear: true
+      reset: true
       recordAnsible: false
   register: result
 
@@ -24,7 +24,7 @@
     record:
       enable: true
       parentKey: user:/test/recording
-      clear: true
+      reset: true
       recordAnsible: false
   register: result
 
@@ -51,7 +51,7 @@
     record:
       enable: true
       parentKey: user:/test/recording
-      clear: true
+      reset: true
       recordAnsible: false
   register: result
 
@@ -66,7 +66,7 @@
     record:
       enable: true
       parentKey: user:/test/recording_different
-      clear: true
+      reset: true
       recordAnsible: false
   register: result
 
@@ -93,7 +93,7 @@
   elektra:
     record:
       enable: false
-      clear: true
+      reset: true
       recordAnsible: false
   register: result
 
@@ -107,7 +107,7 @@
   elektra:
     record:
       enable: false
-      clear: true
+      reset: true
       recordAnsible: false
   register: result
 

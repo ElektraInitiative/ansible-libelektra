@@ -4,7 +4,7 @@
       - /
     record:
       enable: false
-      clear: true
+      reset: true
       recordAnsible: false
   register: result
 
@@ -34,7 +34,7 @@
     record:
       enable: false
       recordAnsible: true
-      clear: true
+      reset: true
     keys:
       - user:/test/ansible/record/hello: "world"
   register: result

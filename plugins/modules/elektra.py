@@ -90,9 +90,10 @@ options:
           - Changes below this key will be recorded.
         type: str
         default: /
-      clear:
+      reset:
         description:
-          - Whether the current recording session should be cleared.
+          - Whether the current recording session should be reset.
+          - This wil remove all recorded keys from the session.
         type: bool
         default: true
       recordAnsible:
@@ -381,7 +382,7 @@ class RecordingManager:
     A simple helper to deal with recording state during the module execution
     """
 
-    def __init__(self, should_clear: bool, should_record_ansible: bool, record_root: kdb.Key | None,
+    def __init__(self, should_reset: bool, should_record_ansible: bool, record_root: kdb.Key | None,
                  is_check_mode: bool):
         """
         Constructor for the Recording Manager.
@@ -389,8 +390,8 @@ class RecordingManager:
 
         Parameters
         ----------
-        should_clear : bool
-            whether the current existing session should be cleared.
+        should_reset : bool
+            whether the current existing session should be reset.
         should_record_ansible: bool
             whether we want to record during the module execution.
         record_root : kdb.Key or None
@@ -401,7 +402,7 @@ class RecordingManager:
         """
 
         self.is_check_mode = is_check_mode
-        self.should_clear = should_clear
+        self.should_reset = should_reset
         self.should_record_ansible = should_record_ansible
         self.record_root = record_root
 
@@ -478,7 +479,7 @@ class RecordingManager:
         if old_recording_parent_name != new_recording_parent_name:
             return True
 
-        if self.record_contained_keys and self.should_clear:
+        if self.record_contained_keys and self.should_reset:
             return True
 
         # If recordAnsible is enabled we can just return False
@@ -512,9 +513,9 @@ class RecordingManager:
                     f"Disabling recording was not successful. {create_text_with_error_and_warnings(error_key)}")
             return kdb.errors.get_warnings(error_key)
 
-    def clear_recording_session_if_requested(self) -> List[kdb.errors.ElektraWarning]:
+    def reset_recording_session_if_requested(self) -> List[kdb.errors.ElektraWarning]:
         """
-        Clear the recording session if this was requested in the playbook.
+        Reset the recording session if this was requested in the playbook.
 
         Returns
         -------
@@ -527,12 +528,12 @@ class RecordingManager:
             If something goes wrong.
         """
 
-        if not self.should_clear:
+        if not self.should_reset:
             return []
 
         with kdb.KDB() as db:
             error_key = kdb.Key()
-            successful = kdb.record.RecordUtil.clear(db, error_key)
+            successful = kdb.record.RecordUtil.reset(db, error_key)
             if not successful:
                 raise RecordingManagerException(
                     f"Clearing recording session was not successful. {create_text_with_error_and_warnings(error_key)}")
@@ -1275,12 +1276,12 @@ def parse_record_options(record_options: dict | None, is_check_mode: bool) -> Re
         The recording manager.
     """
 
-    should_clear = True
+    should_reset = True
     should_record_ansible = False
     record_root = kdb.Key("/")
 
     if record_options is not None:
-        should_clear = record_options.get('clear')
+        should_reset = record_options.get('reset')
         should_record_ansible = record_options.get('recordAnsible')
         if record_options.get('enable'):
             rr = record_options.get('parentKey')
@@ -1288,7 +1289,7 @@ def parse_record_options(record_options: dict | None, is_check_mode: bool) -> Re
         else:
             record_root = None
 
-    return RecordingManager(should_clear, should_record_ansible, record_root, is_check_mode)
+    return RecordingManager(should_reset, should_record_ansible, record_root, is_check_mode)
 
 
 def parse_keys_to_clear(clear_options: dict | None) -> kdb.KeySet:
@@ -1338,7 +1339,7 @@ def main():
                 options=dict(
                     enable=dict(type='bool', default=True),
                     parentKey=dict(type='str', default='/'),
-                    clear=dict(type='bool', default=True),
+                    reset=dict(type='bool', default=True),
                     recordAnsible=dict(type='bool', default=False)
                 )
             ),
@@ -1386,8 +1387,8 @@ def main():
         for warning in warnings:
             module.warn(format_elektra_error(warning))
 
-        # Clear session recording if requested
-        warnings = recording_manager.clear_recording_session_if_requested()
+        # Reset session recording if requested
+        warnings = recording_manager.reset_recording_session_if_requested()
         for warning in warnings:
             module.warn(format_elektra_error(warning))
 

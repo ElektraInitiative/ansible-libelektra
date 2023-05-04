@@ -191,9 +191,10 @@ The `recording` element has the following parameters:
             By default, we enable this.
 - `parentKey`: The parent key to use for session recording.
                Every change to this key or below will be recorded.
-- `clear`: `true` or `false` 
-            Whether the current recording session should be deleted.
-            By default, we clear it.
+- `reset`: `true` or `false` 
+            Whether the current recording session should be reset.
+            All keys from the recording session will be removed.
+            By default, we reset it.
 - `recordAnsible`: `true` or `false`.
                    Whether changes made to Elektra via this task should be recorded.
                    By default, we do not do this.
@@ -205,11 +206,11 @@ The `recording` element has the following parameters:
   collections:
     - elektra_initiative.libelektra
   tasks:
-    - name: set example keys
+    - name: Interact with recording session
       elektra:
         recording:
           enable: true
-          clear: true
+          reset: true
           parentKey: user:/myapp
           recordAnsible: true
 ```
