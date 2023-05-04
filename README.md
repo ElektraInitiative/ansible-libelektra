@@ -120,14 +120,54 @@ To do this, you can specify a list with one or more of the following entries dir
 - `meta`: meta keys of the keys.
 - `array`: Use a TOML array to specify an Elektra array.
            If you want to set values and metadata on the array index directly, you can use the special name `'#'`.
+           If you use `'#'` outside of `array`, it will be treated as part of the key name.
+           This way you can also manually create Elektra arrays.
            See the `pets` and `friends` keys in the example below.
 - `value`: the value of the key. 
            Same as if you specify `cherry: cola` in the example above.
-- `keys`: if this is a parent key of child keys, you can continue specifiyng the child keys below this.
+           Mainly useful if you want to specify a value for a key within a key hierarchy (i.e. has child keys)
+- `keys`: if this is a parent key of child keys, you can continue specifying the child keys below this.
           Obviously this is only needed if you use `value`, `meta` or `array`.
           You can nest this however often you like.
 
-The following example will generate the following keys:
+```yml
+- name: elektra module example
+  hosts: localhost
+  connection: local
+  collections:
+    - elektra_initiative.libelektra
+  tasks:
+    - name: set example keys
+      elektra:
+        keys:
+          - 'user:/tests/ansible':
+              fruit:
+                cherry:
+                  - value: cola
+                  - meta:
+                      type: string
+                  - keys:
+                      pie: yummy
+                      jelly:
+                        sugar: none
+              pets:
+                - array:
+                    - name: rufus
+                      type: dog
+                    - name: bessie
+                      type: cow
+              friends:
+                - meta:
+                    complete: false
+                - array:
+                    - '#': Mary
+                    - '#':
+                        - value: John
+                        - meta:
+                            age: 53
+```
+
+The above example will generate the following keys:
 - `user:/test/ansible/fruit/cherry = cola`
   - `meta:/type = string`
 - `user:/test/ansible/fruit/cherry/pie = yummy`
@@ -143,44 +183,6 @@ The following example will generate the following keys:
 - `user:/test/ansible/friends/#0 = Mary`
 - `user:/test/ansible/friends/#1 = John`
   - `meta:/age = 53`
-
-```yml
-- name: elektra module example
-  hosts: localhost
-  connection: local
-  collections:
-    - elektra_initiative.libelektra
-  tasks:
-    - name: set example keys
-      elektra:
-        keys:
-          - user:/tests/ansible:
-              fruit:
-                cherry:
-                  - value: cola
-                  - meta:
-                      # This adds the type metakey with value string to the key /tests/ansible/fruit/cherry
-                      type: string
-                  - keys:
-                      pie: yummy
-                      jelly:
-                        sugar: none           
-            pets:
-              - array:
-                  - name: rufus
-                    type: dog
-                  - name: bessie
-                    type: cow
-            friends:
-              - meta:
-                  complete: false
-              - array:
-                  - '#': Mary
-                  - '#':
-                    - value: John
-                    - meta:
-                        age: 53
-```
 
 ## Session Recording
 
@@ -224,7 +226,7 @@ The `merge` element has the following parameters:
   - `theirs`: use the keys on the host on conflict.
   - `abort`: abort task on conflict.
 - `base`: If specified, this is the base keyset to use as the _base_ in the 3-way merge.
-          It has the same syntax as the `key` element of the task.
+          It has the same syntax as the `keys` element of the task.
           If not specified, we will try to generate the base keys from the current configuration on the host.
           If the recording session on the host contains changes, we will undo them from the base.
 
@@ -249,6 +251,8 @@ The following example will remove everything below `user:/ansible/test` and `sys
 
 `keepOrder`: `true` or `false`.
 If specified, we will try to keep the order (using the `meta:/order` meta key) for keys contained in this task.
+By default, this option is disabled (`false`).
+
 The following example will 'force' the hosts plugin to write the `example.org` hosts after `libelektra.org` into the hosts file.
 
 ```yml
