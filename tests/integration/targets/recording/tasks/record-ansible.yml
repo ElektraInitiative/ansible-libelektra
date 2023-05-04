@@ -1,7 +1,8 @@
 - name: Reset Elektra
   elektra:
-    clear:
-      - /
+    remove:
+      - /:
+          recursive: true
     record:
       enable: false
       reset: true

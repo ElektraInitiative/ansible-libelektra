@@ -62,11 +62,13 @@ options:
         required: true
         type: list
         elements: dict
-  clear:
+  remove:
     description:
-      - A list of keys which, including their children, should be removed.
+      - A list of keys which should be removed.
+      - The list can be a mix of strings (key name) and dictionary (key name is the key, with parameter 'recursive')
+      - If you specify the parameter recursive: true, all keys below the key will also be removed.
     type: list
-    elements: str
+    elements: raw
   keepOrder:
     description:
       - Use "order" metadata to preserve the order of the passed keyset.
@@ -271,6 +273,41 @@ class BaseKeysGetter:
             self.diff.undo(base)
 
         return base
+
+
+class KeyRemover:
+    def __init__(self, to_remove: kdb.KeySet | None):
+        self.to_remove = to_remove
+
+    def remove_keys(self, keys: kdb.KeySet) -> kdb.KeySet:
+        """
+        Removes the keys from the keyset.
+
+        Parameters
+        ----------
+        keys: kdb.KeySet
+            The keys will be removed from this keyset
+
+        Returns
+        -------
+        kdb.KeySet
+            The removed keys
+        """
+        removed_keys = kdb.KeySet(0)
+        if self.to_remove is None or len(self.to_remove) == 0:
+            return removed_keys
+
+        for key in self.to_remove:
+            if key.hasMeta("recursive"):
+                removed_keys.append(keys.cut(key))
+            else:
+                try:
+                    removed_keys.append(keys.remove(key.name))
+                except ValueError:
+                    # Ignore error if key does not exist
+                    pass
+
+        return removed_keys
 
 
 class TransactionManager:
@@ -873,7 +910,7 @@ def write_keys(keyset: kdb.KeySet,
                base_keys_getter: BaseKeysGetter,
                parent_key: kdb.Key,
                conflict_strategy: kdb.merge.ConflictStrategy,
-               keys_to_clear: kdb.KeySet,
+               key_remover: KeyRemover,
                keep_order: bool,
                is_check_mode: bool) -> Tuple[bool, List[kdb.errors.ElektraWarning]]:
     """
@@ -889,8 +926,8 @@ def write_keys(keyset: kdb.KeySet,
         The parent key for the whole operation.
     conflict_strategy: kdb.merge.ConflictStrategy
         The strategy to use for resolving merge conflicts
-    keys_to_clear: kdb.KeySet
-        The key hierarchies to completely remove from the KDB before applying `keyset`.
+    key_remover: KeyRemover
+        Helper that removes the keys specified.
     keep_order:
         Whether the `order` metakeys should be updated.
     is_check_mode:
@@ -920,9 +957,7 @@ def write_keys(keyset: kdb.KeySet,
 
         # Remove the keys that were specified
         # We remove them from theirs, at that forms the base for both "ours" and "base"
-        cleared_keys = kdb.KeySet(0)
-        for key in keys_to_clear:
-            cleared_keys.append(theirs.cut(key))
+        removed_keys = key_remover.remove_keys(theirs)
 
         base_keys = base_keys_getter.get_base(theirs)
         ours = deep_dup_keyset(theirs)
@@ -946,7 +981,7 @@ def write_keys(keyset: kdb.KeySet,
         keys_to_save = merge_result.mergedKeys
 
         diff: kdb.ElektraDiff = db.calculateChanges(keys_to_save, parent_key)
-        if diff.isEmpty() and len(cleared_keys) == 0:
+        if diff.isEmpty() and len(removed_keys) == 0:
             # No changes to the KDB are necessary
             return False, warnings
 
@@ -1292,28 +1327,44 @@ def parse_record_options(record_options: dict | None, is_check_mode: bool) -> Re
     return RecordingManager(should_reset, should_record_ansible, record_root, is_check_mode)
 
 
-def parse_keys_to_clear(clear_options: dict | None) -> kdb.KeySet:
+def parse_keys_to_remove(remove_options: List[dict] | None) -> KeyRemover:
     """
-    Parse the clear options specified in the playbook.
+    Parse the remove options specified in the playbook.
 
     Parameters
     ----------
-    clear_options: dict or None
+    remove_options: dict or None
         The options as specified in the playbook.
 
     Returns
     -------
-    kdb.KeySet
-        A keyset that contains all parent keys that should be removed.
+    KeyRemover
+        The keyremover that will remove the specified keys.
     """
     ks = kdb.KeySet(0)
-    if clear_options is None:
-        return ks
+    if remove_options is None:
+        return KeyRemover(ks)
 
-    for k in clear_options:
-        ks.append(kdb.Key(k))
+    for k in remove_options:
+        key: kdb.Key
+        is_recursive = False
 
-    return ks
+        if isinstance(k, dict):
+            options: dict
+            name, options = list(k.items())[0]
+            key = kdb.Key(name)
+            is_recursive = options.get("recursive", False)
+        elif isinstance(k, str):
+            key = kdb.Key(k)
+        else:
+            raise ElektraException(f"Options for 'remove' have no valid format. Offending option: {k}")
+
+        if is_recursive:
+            key.setMeta("recursive", "true")
+
+        ks.append(key)
+
+    return KeyRemover(ks)
 
 
 def main():
@@ -1332,7 +1383,10 @@ def main():
                     preserveKeys=dict(type='bool', default=False),
                 )
             ),
-            clear=dict(type='list', elements='str'),
+            remove=dict(
+                type='list',
+                elements='raw',
+            ),
             keepOrder=dict(type='bool', default=False),
             record=dict(
                 type='dict',
@@ -1408,14 +1462,14 @@ def main():
         keys = build_keyset_from_dict(module.params.get('keys'), keep_order)
 
         # Get which key hierarchies should be removed
-        keys_to_clear = parse_keys_to_clear(module.params.get('clear'))
+        key_remover = parse_keys_to_remove(module.params.get('remove'))
 
         # Merge and write keys to KDB
         write_changed, warnings = write_keys(keys,
                                              base_keys_getter,
                                              kdb.Key("/"),
                                              conflict_strategy,
-                                             keys_to_clear,
+                                             key_remover,
                                              keep_order,
                                              module.check_mode)
         for warning in warnings:

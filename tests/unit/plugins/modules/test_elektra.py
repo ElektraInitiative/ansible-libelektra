@@ -6,7 +6,7 @@ __metaclass__ = type
 
 import kdb
 from ansible_collections.elektra_initiative.libelektra.plugins.modules.elektra import (
-    apply_new_keyset, flatten_dict, build_keyset_from_dict
+    apply_new_keyset, flatten_dict, build_keyset_from_dict, parse_keys_to_remove, KeyRemover
 )
 
 
@@ -448,3 +448,56 @@ def test__build_keyset_from_dict__should_flatten_meta():
     assert result["user:/test/raspberry"].getMeta("meta:/comment/#1/space").value == "Nothing"
     assert result["user:/test/raspberry"].getMeta("comment/#1/start") is not None
     assert result["user:/test/raspberry"].getMeta("comment/#1/start").value == "#"
+
+
+def test__parse_keys_to_remove__should_correctly_parse():
+    # Arrange
+    argument = [
+        "user:/",
+        {"spec:/": {"something": "else"}},
+        {"dir:/": {"recursive": True}}
+    ]
+
+    # Act
+    key_remover = parse_keys_to_remove(argument)
+
+    # Assert
+    assert len(key_remover.to_remove) == 3
+    assert not key_remover.to_remove["user:/"].hasMeta("recursive")
+    assert not key_remover.to_remove["spec:/"].hasMeta("recursive")
+    assert key_remover.to_remove["dir:/"].hasMeta("recursive")
+
+
+def test__key_remove__should_remove_keys():
+    # Arrange
+    keys = kdb.KeySet(0)
+    keys.append(kdb.Key("user:/test"))
+    keys.append(kdb.Key("user:/test/1"))
+    keys.append(kdb.Key("user:/test/2"))
+    keys.append(kdb.Key("user:/else"))
+    keys.append(kdb.Key("user:/else/1"))
+    keys.append(kdb.Key("user:/else/2"))
+    keys.append(kdb.Key("user:/nice"))
+
+    to_remove = kdb.KeySet()
+    to_remove.append(kdb.Key("user:/else"))
+    rec_key = kdb.Key("user:/test")
+    rec_key.setMeta("recursive", "true")
+    to_remove.append(rec_key)
+
+    key_remover = KeyRemover(to_remove)
+
+    # Act
+    removed = key_remover.remove_keys(keys)
+
+    # Assert
+    assert len(removed) == 4
+    assert removed["user:/test"] is not None
+    assert removed["user:/test/1"] is not None
+    assert removed["user:/test/2"] is not None
+    assert removed["user:/else"] is not None
+
+    assert len(keys) == 3
+    assert keys["user:/else/1"] is not None
+    assert keys["user:/else/2"] is not None
+    assert keys["user:/nice"] is not None

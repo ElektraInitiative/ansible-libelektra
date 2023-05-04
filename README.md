@@ -232,7 +232,9 @@ The `merge` element has the following parameters:
 
 ## Other Options
 
-`clear`: A list of keys that shall be removed, including their children.
+`remove`: A list of keys that shall be removed.
+You may specify the parameter `recursive` as `true` to also remove the children of the key.
+
 The following example will remove everything below `user:/ansible/test` and `system:/host/ipv4`.
 
 ```yml
@@ -244,9 +246,10 @@ The following example will remove everything below `user:/ansible/test` and `sys
   tasks:
     - name: set example keys
       elektra:
-        clear:
+        remove:
           - user:/ansible/test
-          - system:/hosts/ipv4
+          - system:/hosts:
+              recursive: true
 ```
 
 `keepOrder`: `true` or `false`.
@@ -265,7 +268,7 @@ The following example will 'force' the hosts plugin to write the `example.org` h
     - name: set example keys
       elektra:
         keepOrder: true
-        clear:
+        keys:
           - system:
               hosts:
                 ipv4:
