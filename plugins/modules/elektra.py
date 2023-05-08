@@ -214,6 +214,21 @@ class ElektraWriteException(ElektraException):
     pass
 
 
+class ElektraMergeException(ElektraException):
+    """There were merge conflicts and ABORT strategy has been specified"""
+    def __init__(self, conflicting_keys: kdb.KeySet):
+        """
+        Create an instance of this exception
+
+        Parameters
+        ----------
+        conflicting_keys: kdb.KeySet
+            KeySet containing all the conflicting keys
+        """
+        super().__init__(f"There were merge conflicts in the following keys: {conflicting_keys}")
+        self.conflicting_keys = conflicting_keys
+
+
 class RecordingManagerException(ElektraException):
     """Something failed during managing recording"""
     pass
@@ -973,6 +988,10 @@ def write_keys(keyset: kdb.KeySet,
         )
 
         warnings.extend(kdb.errors.get_warnings(merge_result.mergeInformation))
+
+        if merge_result.hasConflicts() and conflict_strategy == kdb.merge.ConflictStrategy.ABORT:
+            raise ElektraMergeException(merge_result.getConflictingKeys(parent_key))
+
         merge_error = kdb.errors.get_error(merge_result.mergeInformation)
         if merge_error is not None:
             raise ElektraException(
