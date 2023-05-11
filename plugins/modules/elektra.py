@@ -709,7 +709,7 @@ def flatten_dict(keyset_dict: List[dict], interpret_first_as_namespace=True) -> 
                     {
                         "meta": {
                             "elektra": {
-                                "deleted": "true
+                                "deleted": "1"
                             }
                         }
                     }
@@ -725,7 +725,7 @@ def flatten_dict(keyset_dict: List[dict], interpret_first_as_namespace=True) -> 
         "user:/test/otherKey": {
             "value": "value 2",
             "meta": {
-                "elektra/deleted": "true"
+                "elektra/deleted": "1"
             }
         }
     }
@@ -879,7 +879,7 @@ def apply_new_keyset(existing_keys: kdb.KeySet, new_keys: kdb.KeySet, keep_order
     key: kdb.Key
     for key in new_keys:
         meta_key = key.getMeta("meta:/elektra/deleted")
-        if meta_key is not None and meta_key.value == "true":
+        if meta_key is not None and (meta_key.value == "1" or meta_key.value == "true"):
             existing_keys.remove(key.name)
         else:
             if keep_order:

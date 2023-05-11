@@ -46,7 +46,7 @@ def test__apply_new_keyset__with_deleted_meta__should_delete():
 
     newKs = kdb.KeySet(0)
     keyToDelete = kdb.Key("system:/hello", "someValue")
-    keyToDelete.setMeta("meta:/elektra/deleted", "true")
+    keyToDelete.setMeta("meta:/elektra/deleted", "1")
     newKs.append(keyToDelete)
 
     # Act
