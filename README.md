@@ -113,7 +113,7 @@ If anything fails, everything will be rolled back.
                 potato: fries
 ```
 
-## Metakeys, Arrays and Subkeys
+## Metakeys, Arrays, Subkeys and other key options
 
 For every key you can specify metadata, array values and subkeys.
 To do this, you can specify a list with one or more of the following entries directly into the key:
@@ -234,12 +234,37 @@ The `merge` element has the following parameters:
           If not specified, we will try to generate the base keys from the current configuration on the host.
           If the recording session on the host contains changes, we will undo them from the base.
 
-## Other Options
+## Key Removal
 
+There are two slightly different ways how keys can be removed.
+The first one is the already mentioned `remove` option on the key itself.
+
+If specified, it will remove the single key it is attached to.
+Other things such as `meta` and `value` will have no effect.
+The `array` and `keys` option will still work as expected.
+
+```yml
+- name: elektra module example
+  hosts: localhost
+  connection: local
+  collections:
+    - elektra_initiative.libelektra
+  tasks:
+    - name: set example keys
+      elektra:
+        keys:
+          - system:/hosts:
+              example.com:
+                - remove: true
+```
+
+The second one, is the top-level `remove` option.
 `remove`: A list of keys that shall be removed.
-You may specify the parameter `recursive` as `true` to also remove the children of the key.
 
-The following example will remove everything below `user:/ansible/test` and `system:/host/ipv4`.
+One big differences in this approach is the parameter.
+You may specify the parameter `recursive` as `true` to also remove the children of the key, allowing you to remove the entire subtree from the KDB.
+
+The following example will remove the key `user:/ansible/test` and everything below `system:/hosts`:
 
 ```yml
 - name: elektra module example
@@ -255,6 +280,35 @@ The following example will remove everything below `user:/ansible/test` and `sys
           - system:/hosts:
               recursive: true
 ```
+
+The second big difference is the interaction with the `value` and `meta` options specified in `keys`.
+If you use the top-level `remove` option, you can still add this key in the `keys` option.
+This allows you to ensure that the key gets added to the KDB as you describe.
+
+Normally, the meta data of the existing key would get merged with the meta data you specify in the playbook.
+If you specify the key in the top-level `remove` then the existing key gets removed and the new key gets added as-is.
+
+```yml
+- name: elektra module example
+  hosts: localhost
+  connection: local
+  collections:
+    - elektra_initiative.libelektra
+  tasks:
+    - name: set example keys
+      elektra:
+        remove:
+          - user:/ansible/test
+        keys:
+          - user:
+              ansible:
+                test:
+                  - value: hello
+                  - meta:
+                      description: I will be the only meta-key in the KDB for this key!
+```
+
+## Other Options
 
 `keepOrder`: `true` or `false`.
 If specified, we will try to keep the order (using the `meta:/order` meta key) for keys contained in this task.
