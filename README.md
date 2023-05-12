@@ -126,6 +126,10 @@ To do this, you can specify a list with one or more of the following entries dir
 - `value`: the value of the key. 
            Same as if you specify `cherry: cola` in the example above.
            Mainly useful if you want to specify a value for a key within a key hierarchy (i.e. has child keys)
+- `remove`: boolean value.
+            If you specify `true`, then this key will be removed from the KDB.
+            It will NOT affect keys below this key.
+            If you want to remove an entire subtree, see the top-level `remove` option further down. 
 - `keys`: if this is a parent key of child keys, you can continue specifying the child keys below this.
           Obviously this is only needed if you use `value`, `meta` or `array`.
           You can nest this however often you like.

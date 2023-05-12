@@ -733,7 +733,7 @@ def flatten_dict(keyset_dict: List[dict], interpret_first_as_namespace=True) -> 
     Parameters
     ----------
     keyset_dict: dict
-        The keyset in didct format
+        The keyset in dict format
 
     interpret_first_as_namespace: bool
         Whether the first hierarchy level should be treated as containing the namespace of the key.
@@ -769,6 +769,8 @@ def flatten_dict(keyset_dict: List[dict], interpret_first_as_namespace=True) -> 
             for element in x:
                 if element.get("value") is not None:
                     out[name[:-1]]['value'] = element.get("value")
+                elif element.get("remove") is not None:
+                    out[name[:-1]]['remove'] = element.get("remove")
                 elif element.get("meta") is not None:
                     meta.update(flatten_dict(element.get("meta"), interpret_first_as_namespace=False))
                 elif element.get("keys") is not None:
@@ -833,6 +835,8 @@ def build_keyset_from_dict(keyset_dict: List[dict], keep_order: bool) -> kdb.Key
                     if sname == 'value':
                         if key.value != str(svalue):
                             key.value = str(svalue)
+                    elif sname == 'remove' and svalue is True:
+                        key.setMeta('meta:/elektra/deleted', '1')
                     elif sname == 'meta' and not is_meta:
                         meta_ks = build_ks(svalue, True)
                         for meta_key in meta_ks:

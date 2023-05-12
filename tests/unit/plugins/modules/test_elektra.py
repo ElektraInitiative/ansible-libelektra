@@ -112,7 +112,7 @@ def test__flatten_dict__should_flatten():
                         {
                             "meta": {
                                 "elektra": {
-                                    "deleted": "1"
+                                    "test": "1"
                                 }
                             }
                         },
@@ -197,7 +197,7 @@ def test__flatten_dict__should_flatten():
     assert flattened["user:/hosts/localhost/ipv4"] is not None
     assert flattened["user:/hosts/localhost/ipv4"]["value"] == "127.0.0.1"
     assert flattened["user:/hosts/localhost/ipv4"]["meta"] is not None
-    assert flattened["user:/hosts/localhost/ipv4"]["meta"]["elektra/deleted"] == "1"
+    assert flattened["user:/hosts/localhost/ipv4"]["meta"]["elektra/test"] == "1"
     assert flattened["user:/hosts/localhost/ipv6"] is not None
     assert flattened["user:/hosts/localhost/ipv6"]["value"] == "::1"
     assert flattened["user:/hosts/example.com/ipv4"] is not None
@@ -290,7 +290,7 @@ def test__build_keyset_from_dict__no_keep_order__should_work():
                         {
                             "meta": {
                                 "elektra": {
-                                    "deleted": "1"
+                                    "test": "1"
                                 }
                             }
                         },
@@ -305,6 +305,9 @@ def test__build_keyset_from_dict__no_keep_order__should_work():
                     "ipv4": [
                         {
                             "value": "1.2.3.4"
+                        },
+                        {
+                            "remove": True
                         }
                     ]
                 }
@@ -375,10 +378,15 @@ def test__build_keyset_from_dict__no_keep_order__should_work():
     assert len(ks) == 16
     assert ks["user:/hosts/localhost/ipv4"] is not None
     assert ks["user:/hosts/localhost/ipv4"].value == "127.0.0.1"
-    assert ks["user:/hosts/localhost/ipv4"].getMeta("meta:/elektra/deleted") is not None
-    assert ks["user:/hosts/localhost/ipv4"].getMeta("meta:/elektra/deleted").value == "1"
+    assert ks["user:/hosts/localhost/ipv4"].getMeta("meta:/elektra/test") is not None
+    assert ks["user:/hosts/localhost/ipv4"].getMeta("meta:/elektra/test").value == "1"
     assert ks["user:/hosts/example.com/ipv4"] is not None
     assert ks["user:/hosts/example.com/ipv4"].value == "1.2.3.4"
+
+    # the 'remove' marker should add the meta:/elektra/deleted meta data
+    assert ks["user:/hosts/example.com/ipv4"].getMeta("meta:/elektra/deleted") is not None
+    assert ks["user:/hosts/example.com/ipv4"].getMeta("meta:/elektra/deleted").value == "1"
+
     assert ks["system:/drink"] is not None
     assert ks["system:/drink"].value == "beer"
     assert ks["system:/drink"].getMeta("meta:/healthy").value == "false"
