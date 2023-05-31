@@ -46,7 +46,7 @@ def test__apply_new_keyset__with_deleted_meta__should_delete():
 
     newKs = kdb.KeySet(0)
     keyToDelete = kdb.Key("system:/hello", "someValue")
-    keyToDelete.setMeta("meta:/elektra/deleted", "1")
+    keyToDelete.setMeta("meta:/elektra/removed", "1")
     newKs.append(keyToDelete)
 
     # Act
@@ -383,9 +383,9 @@ def test__build_keyset_from_dict__no_keep_order__should_work():
     assert ks["user:/hosts/example.com/ipv4"] is not None
     assert ks["user:/hosts/example.com/ipv4"].value == "1.2.3.4"
 
-    # the 'remove' marker should add the meta:/elektra/deleted meta data
-    assert ks["user:/hosts/example.com/ipv4"].getMeta("meta:/elektra/deleted") is not None
-    assert ks["user:/hosts/example.com/ipv4"].getMeta("meta:/elektra/deleted").value == "1"
+    # the 'remove' marker should add the meta:/elektra/removed meta data
+    assert ks["user:/hosts/example.com/ipv4"].getMeta("meta:/elektra/removed") is not None
+    assert ks["user:/hosts/example.com/ipv4"].getMeta("meta:/elektra/removed").value == "1"
 
     assert ks["system:/drink"] is not None
     assert ks["system:/drink"].value == "beer"
