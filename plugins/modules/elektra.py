@@ -216,6 +216,7 @@ class ElektraWriteException(ElektraException):
 
 class ElektraMergeException(ElektraException):
     """There were merge conflicts and ABORT strategy has been specified"""
+
     def __init__(self, conflicting_keys: kdb.KeySet):
         """
         Create an instance of this exception
@@ -249,7 +250,7 @@ class BaseKeysGetter:
     Helper to ease the determination of the base keyset for the 3-way merge.
     """
 
-    def __init__(self, base: kdb.KeySet | None, diff: kdb.ElektraDiff | None):
+    def __init__(self, base: kdb.KeySet, diff: kdb.ElektraDiff):
         """
         Create an instance of BaseKeysGetter.
 
@@ -291,7 +292,7 @@ class BaseKeysGetter:
 
 
 class KeyRemover:
-    def __init__(self, to_remove: kdb.KeySet | None):
+    def __init__(self, to_remove: kdb.KeySet):
         self.to_remove = to_remove
 
     def remove_keys(self, keys: kdb.KeySet) -> kdb.KeySet:
@@ -343,7 +344,7 @@ class TransactionManager:
             Whether Ansible is in check mode.
             No changes to the state of KDB will be made if this is `true`
         """
-        self.original_configuration: kdb.KeySet | None = None
+        self.original_configuration: kdb.KeySet = None
         self.is_check_mode = is_check_mode
         pass
 
@@ -434,7 +435,7 @@ class RecordingManager:
     A simple helper to deal with recording state during the module execution
     """
 
-    def __init__(self, should_reset: bool, should_record_ansible: bool, record_root: kdb.Key | None,
+    def __init__(self, should_reset: bool, should_record_ansible: bool, record_root: kdb.Key,
                  is_check_mode: bool):
         """
         Constructor for the Recording Manager.
@@ -887,7 +888,7 @@ def apply_new_keyset(existing_keys: kdb.KeySet, new_keys: kdb.KeySet, keep_order
             existing_keys.remove(key.name)
         else:
             if keep_order:
-                existing_key: kdb.Key | None
+                existing_key: kdb.Key
                 try:
                     existing_key = existing_keys[key.name]
                 except:
@@ -1154,7 +1155,7 @@ def elektra_unmount(mountpoint: str) -> None:
             raise ElektraUmountException("Failed to umount " + key.name)
 
 
-def handle_mounts(mount_options: List[dict] | None, is_check_mode: bool) \
+def handle_mounts(mount_options: List[dict], is_check_mode: bool) \
         -> Tuple[bool, List[kdb.errors.ElektraWarning]]:
     """
     Handle the mounting of the mountpoints specified in the playbook.
@@ -1262,7 +1263,7 @@ def handle_mounts(mount_options: List[dict] | None, is_check_mode: bool) \
     return changed, warnings
 
 
-def parse_merge_options(merge_options: dict | None) \
+def parse_merge_options(merge_options: dict) \
         -> Tuple[BaseKeysGetter, kdb.merge.ConflictStrategy, List[kdb.errors.ElektraWarning]]:
     """
     Parses the merge options specified in the playbook.
@@ -1316,7 +1317,7 @@ def parse_merge_options(merge_options: dict | None) \
     return base_keys_getter, conflict_strategy, warnings
 
 
-def parse_record_options(record_options: dict | None, is_check_mode: bool) -> RecordingManager:
+def parse_record_options(record_options: dict, is_check_mode: bool) -> RecordingManager:
     """
     Parse the record options in the playbook and build a `RecordingManager`.
 
@@ -1350,7 +1351,7 @@ def parse_record_options(record_options: dict | None, is_check_mode: bool) -> Re
     return RecordingManager(should_reset, should_record_ansible, record_root, is_check_mode)
 
 
-def parse_keys_to_remove(remove_options: List[dict] | None) -> KeyRemover:
+def parse_keys_to_remove(remove_options: List[dict]) -> KeyRemover:
     """
     Parse the remove options specified in the playbook.
 
