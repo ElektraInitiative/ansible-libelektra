@@ -1,0 +1,64 @@
+- name: Reset Elektra
+  elektra:
+    remove:
+      - /:
+          recursive: true
+    record:
+      enable: false
+      reset: true
+      recordAnsible: false
+
+  register: result
+
+- name: Assert clearing successful
+  assert:
+    that:
+      - result is success
+
+- name: Write some keys that shall be preserved
+  elektra:
+    keys:
+      - system:/ansible/test/hosts:
+          ipv4:
+            libelektra.org: 1.2.3.4
+  register: result
+
+- name: Assert writing successful
+  assert:
+    that:
+      - result is success
+
+- name: Create temporary file
+  ansible.builtin.tempfile:
+    state: file
+    suffix: temp
+  register: tempfile_1
+
+- name: Mount file with preserving keys
+  elektra:
+    mount:
+      - mountpoint: system:/ansible/test/hosts
+        file: "{{ tempfile_1.path }}"
+        plugins:
+          - hosts:
+        preserveKeys: true
+  register: result
+
+- name: Assert mounting task successful
+  assert:
+    that:
+      - result is success
+      - result is changed
+
+- name: Get Elektra infos
+  elektrafacts:
+    mountpoint: /
+  register: result
+
+- name: Assert mountpoint exists
+  assert:
+    that:
+      - result is success
+      - result["system:/elektra/mountpoints/system:\/ansible\/test\/hosts"] is defined
+      - result["system:/ansible/test/hosts/ipv4/libelektra.org"] is defined
+      - result["system:/ansible/test/hosts/ipv4/libelektra.org"].value == "1.2.3.4"

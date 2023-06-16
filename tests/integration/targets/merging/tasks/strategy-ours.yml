@@ -1,0 +1,29 @@
+- include_tasks: setup.yml
+
+- name: Merge with strategy "ours"
+  elektra:
+    merge:
+      strategy: ours
+    keys:
+      - system:/test/merge:
+          key2: "k2-our"
+  register: result
+
+- name: Assert merge successful
+  assert:
+    that:
+      - result is success
+
+- name: Get keys after merge
+  elektrafacts:
+    mountpoint: system:/test/merge
+  register: result
+
+- name: Assert keys correctly merged
+  assert:
+    that:
+      - result is success
+      - result["system:/test/merge/key1"] is defined
+      - result["system:/test/merge/key1"].value == 'k1-base'
+      - result["system:/test/merge/key2"] is defined
+      - result["system:/test/merge/key2"].value == 'k2-our'

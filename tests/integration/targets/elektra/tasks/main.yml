@@ -1,0 +1,55 @@
+- name: Reset Elektra
+  elektra:
+    remove:
+      - /:
+          recursive: true
+    record:
+      enable: false
+      reset: true
+      recordAnsible: false
+  register: result
+
+- name: Assert clearing successful
+  assert:
+    that:
+      - result is success
+
+- name: Get Elektra Info
+  elektrafacts:
+    mountpoint: /
+  register: result
+
+- name: Assert elektrafacts actually returned something
+  assert:
+    that:
+      - result["system:/elektra/version"] is defined
+      - result["system:/elektra/record/config/active"] is undefined
+      - result["user:/test/hello"] is undefined
+
+- name: Mount a file in KDB and write keys to it
+  elektra:
+    mount:
+      - mountpoint: user:/test
+        file: /tmp/ansibletest.ini
+        plugins:
+          - ni: ""
+    keys:
+      - user:/test:
+          hello: world
+          greeting:
+            - array:
+                - '#': howdy
+                - '#': dear sir
+
+- name: Get Elektra Info
+  elektrafacts:
+    mountpoint: /
+  register: result
+
+- name: Assert keys were written
+  assert:
+    that:
+      - result["user:/test/hello"].value == "world"
+      - result["user:/test/greeting"]["meta:/array"] == "#1"
+      - result["user:/test/greeting/#0"].value == "howdy"
+      - result["user:/test/greeting/#1"].value == "dear sir"

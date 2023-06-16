@@ -1,0 +1,40 @@
+- name: Reset Elektra
+  elektra:
+    remove:
+      - /:
+          recursive: true
+    record:
+      enable: false
+      reset: true
+      recordAnsible: false
+  register: result
+
+- name: Seed the base keys
+  elektra:
+    record:
+      enable: true
+      parentKey: system:/test/merge
+      recordAnsible: false
+    keys:
+      - system:/test/merge:
+          key1: "k1-base"
+          key2: "k2-base"
+
+- name: Use kdb util to modify state
+  ansible.builtin.command: kdb set system:/test/merge/key2 k2-their
+
+- name: Get current keys
+  elektrafacts:
+    mountpoint: /
+  register: result
+
+- name: Assert setup complete
+  assert:
+    that:
+      - result is success
+      - result["system:/test/merge/key1"] is defined
+      - result["system:/test/merge/key1"].value == 'k1-base'
+      - result["system:/test/merge/key2"] is defined
+      - result["system:/test/merge/key2"].value == 'k2-their'
+      - result["system:/elektra/record/session/diff/modified/old/test/merge/key2"] is defined
+      - result["system:/elektra/record/session/diff/modified/old/test/merge/key2"].value == 'k2-base'
