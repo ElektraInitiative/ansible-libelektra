@@ -82,6 +82,12 @@ options:
       - Configuration options for Elektra's session recording feature.
     type: dict
     suboptions:
+      skip:
+        description:
+          - Whether to completely skip everything that has to do with recording in this task.
+          - This is useful if the user that is executing the task does not have permissions to change anything in the system:/ namespace
+        type: bool
+        default: false
       enable:
         description:
           - Whether session recording should be enabled after this task is executed.
@@ -436,7 +442,7 @@ class RecordingManager:
     """
 
     def __init__(self, should_reset: bool, should_record_ansible: bool, record_root: kdb.Key,
-                 is_check_mode: bool):
+                 is_check_mode: bool, should_skip: bool):
         """
         Constructor for the Recording Manager.
         For complete initialization, be sure to also call `get_status_quo` too.
@@ -452,12 +458,17 @@ class RecordingManager:
         is_check_mode : bool
             whether Ansible is in check mode.
             If true, no changes will be made, but we will report if something would change.
+        should_skip:
+            whether all recording settings should be skipped.
+            Useful if the user executing this task does not have permissions to change the recording settings.
+            Use with care.
         """
 
         self.is_check_mode = is_check_mode
         self.should_reset = should_reset
         self.should_record_ansible = should_record_ansible
         self.record_root = record_root
+        self.should_skip = should_skip
 
         self.changed = False
         self.recording_was_enabled = False
@@ -480,6 +491,9 @@ class RecordingManager:
         """
 
         warnings = []
+
+        if self.should_skip:
+            return warnings
 
         with kdb.KDB() as db:
             self.recording_was_enabled = kdb.record.RecordUtil.is_active(db)
@@ -515,6 +529,9 @@ class RecordingManager:
         bool
             `true` if something as changed, `false` otherwise.
         """
+
+        if self.should_skip:
+            return False
 
         has_enabled_recording = self.record_root is not None
         if self.recording_was_enabled != has_enabled_recording:
@@ -555,6 +572,9 @@ class RecordingManager:
             If something goes wrong.
         """
 
+        if self.should_skip:
+            return []
+
         if self.is_check_mode:
             return []
 
@@ -580,6 +600,9 @@ class RecordingManager:
         RecordingManagerException
             If something goes wrong.
         """
+
+        if self.should_skip:
+            return []
 
         if not self.should_reset:
             return []
@@ -616,6 +639,9 @@ class RecordingManager:
             If something goes wrong.
         """
 
+        if self.should_skip:
+            return []
+
         if not self.should_record_ansible:
             return []
 
@@ -639,6 +665,9 @@ class RecordingManager:
         RecordingManagerException
             If something goes wrong.
         """
+
+        if self.should_skip:
+            return []
 
         if self.record_root is None:
             return []
@@ -1338,17 +1367,19 @@ def parse_record_options(record_options: dict, is_check_mode: bool) -> Recording
     should_reset = True
     should_record_ansible = False
     record_root = kdb.Key("/")
+    should_skip = False
 
     if record_options is not None:
         should_reset = record_options.get('reset')
         should_record_ansible = record_options.get('recordAnsible')
+        should_skip = record_options.get('skip')
         if record_options.get('enable'):
             rr = record_options.get('parentKey')
             record_root = kdb.Key(rr)
         else:
             record_root = None
 
-    return RecordingManager(should_reset, should_record_ansible, record_root, is_check_mode)
+    return RecordingManager(should_reset, should_record_ansible, record_root, is_check_mode, should_skip)
 
 
 def parse_keys_to_remove(remove_options: List[dict]) -> KeyRemover:
@@ -1415,6 +1446,7 @@ def main():
             record=dict(
                 type='dict',
                 options=dict(
+                    skip=dict(type='bool', default=False),
                     enable=dict(type='bool', default=True),
                     parentKey=dict(type='str', default='/'),
                     reset=dict(type='bool', default=True),

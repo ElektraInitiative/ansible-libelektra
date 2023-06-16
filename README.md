@@ -192,6 +192,12 @@ The above example will generate the following keys:
 
 You can control Elektra's session recording mechanism with this module.
 The `recording` element has the following parameters:
+- `skip`: `true` or `false`.
+           This option MUST be set to `true` if the user executing this task does not have the privileges to write into the `system:/` namespace.
+           By default, this is `false`.
+           Will prevent the module from doing anything related to session recording.
+           This also means that the changes performed during this task MAY be recorded depending on the state of session recording on the host.
+           We recommend that you add another task before that disables session recording, and based on your needs another one afterwards that enables it again.
 - `enable`: `true` or `false`. 
             Whether session recording should be enabled after the task is complete.
             By default, we enable this.
