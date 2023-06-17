@@ -7,7 +7,7 @@ readme: README.md
 authors:
 - Thomas Waser <thomas.waser@tuwien.ac.at>
 - Klemens Böswirth <k.boeswirth+git@gmail.com>
-- Maximilian Irlinger <max@maxirlinger.at> (https://maxirlinger.at)
+- Maximilian Irlinger <max@maxirlinger.at>
 
 description: Collection containing a module to interact with Elektra.
 license:
